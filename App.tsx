@@ -6,6 +6,10 @@ import IntelligencePanel from './components/IntelligencePanel';
 import { getCountryBriefing } from './services/geminiService';
 import { IntelligenceResponse, RiskLevel, LayerVisibility } from './types';
 import { MOCK_RISK_DATA, RISK_COLORS } from './constants';
+import AboutView from './components/docs/AboutView';
+import TechView from './components/docs/TechView';
+import PrivacyView from './components/docs/PrivacyView';
+import SupportView from './components/docs/SupportView';
 
 const App: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -478,28 +482,11 @@ const App: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-10">
-              {showDocModal === 'about' && (
-                <div className="space-y-6">
-                  <div className="text-center space-y-2">
-                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter">HST GLOBAL</h3>
-                    <p className="text-blue-500 text-[10px] mono font-bold tracking-[0.5em] uppercase">Tactical Suite v1.0.4</p>
-                  </div>
-                  <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl mono text-[11px] text-slate-400 space-y-4">
-                    <p>Professional Situational Awareness Workstation developed by HST Global Risk Map Solutions.</p>
-                    <div className="space-y-1 text-slate-500">
-                      <p>KERNEL_ID: DEB-STABLE-104-B</p>
-                      <p>CLEARANCE: COMMANDER (ALFA)</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {showDocModal !== 'about' && (
-                <div className="text-slate-500 text-[10px] mono leading-relaxed uppercase space-y-4">
-                  <p className="text-orange-500 font-bold">SEC_ENCRYPTION_WARNING</p>
-                  <p>This document is subject to HST Sovereignty protocols. Local terminal buffer is locked. Please refer to primary secure terminal for operational manuals.</p>
-                </div>
-              )}
+            <div className="p-10 overflow-y-auto max-h-[70vh] custom-scrollbar">
+              {showDocModal === 'about' && <AboutView />}
+              {showDocModal === 'tech' && <TechView />}
+              {showDocModal === 'privacy' && <PrivacyView />}
+              {showDocModal === 'support' && <SupportView />}
               <div className="flex justify-center gap-4 mt-10">
                 <button
                   onClick={() => setShowDocModal(null)}
@@ -518,6 +505,19 @@ const App: React.FC = () => {
         .animate-ticker { animation: ticker 40s linear infinite; }
         * { cursor: default !important; }
         button, a, input, [role="button"] { cursor: pointer !important; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
       `}</style>
     </div>
   );
