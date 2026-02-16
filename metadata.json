@@ -1,0 +1,9 @@
+{
+  "name": "global-risk-map-deb",
+  "version": "1.0.4",
+  "author": "HST Global Risk Map Solutions",
+  "description": "Tactical Geopolitical Intelligence & Risk Assessment Workstation",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

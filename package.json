@@ -1,0 +1,56 @@
+{
+  "name": "global-risk-map-deb",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HST Global Risk Map Solutions Workstation",
+  "author": {
+    "name": "HST Global Risk Map Solutions",
+    "email": "support@hstgrm.app"
+  },
+  "homepage": "https://hstgrm.app",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "wait-on tcp:3000 && electron .",
+    "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"npm run electron\"",
+    "electron:build": "vite build && tsc -p electron/tsconfig.json && electron-builder --linux deb"
+  },
+  "dependencies": {
+    "@google/genai": "^1.40.0",
+    "d3": "^7.9.0",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^40.4.1",
+    "electron-builder": "^26.7.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
+    "wait-on": "^9.0.4"
+  },
+  "build": {
+    "appId": "com.hstgrm.app",
+    "productName": "HST Global Risk Map",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "linux": {
+      "target": "deb",
+      "category": "Utility",
+      "maintainer": "HST Global Risk Map Solutions <support@hstgrm.app>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+
+{
+  "name": "HST Global Risk Map Solutions",
+  "short_name": "HST-GRM",
+  "description": "Workstation for Global Intelligence Monitoring",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#010409",
+  "theme_color": "#010409",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2560/2560012.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
