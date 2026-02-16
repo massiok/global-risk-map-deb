@@ -1,31 +1,33 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { IntelligenceResponse } from "../types";
-import { BASE_NATION_DATA, DEFAULT_BASE_DATA } from "../baseData";
+import { IntelligenceResponse, NewsItem } from "../types";
+import { BASE_NATION_DATA, DEFAULT_BASE_DATA, MOCK_RSS_FEEDS } from "../baseData";
 
 const getMockBriefing = (countryName: string): IntelligenceResponse => {
-  // Try to find if we have ISO code or name match (simplified)
-  // For simplicity, let's assume we pass the ISO code or name
   const data = BASE_NATION_DATA[countryName] || Object.values(BASE_NATION_DATA).find(d => d.summary.includes(countryName)) || DEFAULT_BASE_DATA;
 
   return {
     summary: data.summary,
     politicalStability: data.stability,
-    conflictPotential: "NEURAL_HANDSHAKE_REQUIRED: Advanced kinetic assessment encrypted.",
+    conflictPotential: data.isDeepIntel ? "SYSTEM_CACHE: Deep-Intel handoff available. Analysis stability high." : "NEURAL_HANDSHAKE_REQUIRED: Advanced kinetic assessment encrypted.",
     economicRisk: data.economic,
     keyThreats: data.threats,
-    isAdvanced: false
+    isAdvanced: data.isDeepIntel || false,
+    source: data.isDeepIntel ? 'CACHED' : 'BASE',
+    timestamp: new Date().toISOString()
   };
+};
+
+export const getGlobalNews = async (): Promise<NewsItem[]> => {
+  await new Promise(r => setTimeout(r, 400));
+  return MOCK_RSS_FEEDS.map(n => ({ ...n, timestamp: new Date().toLocaleTimeString() }));
 };
 
 export const getCountryBriefing = async (countryName: string, apiKey?: string, isStandalone?: boolean): Promise<IntelligenceResponse> => {
   if (isStandalone || !apiKey) {
-    // Artificial delay to simulate processing
     await new Promise(r => setTimeout(r, 800));
     return getMockBriefing(countryName);
   }
 
-  // Always use gemini-1.5-pro for complex geopolitical and analytical tasks.
-  // Instantiate GoogleGenAI right before the call to use the most up-to-date API key.
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `Provide a senior-level geopolitical intelligence SITREP for ${countryName}. 
@@ -60,7 +62,12 @@ export const getCountryBriefing = async (countryName: string, apiKey?: string, i
   try {
     const text = response.text || "{}";
     const data = JSON.parse(text.trim()) as IntelligenceResponse;
-    return { ...data, isAdvanced: true };
+    return {
+      ...data,
+      isAdvanced: true,
+      source: 'LIVE',
+      timestamp: new Date().toISOString()
+    };
   } catch (error) {
     console.error("Geopolitical parsing failed:", error);
     throw new Error("SEC_PARSE_ERROR: Data packet corrupted.");

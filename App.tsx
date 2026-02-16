@@ -109,28 +109,37 @@ const App: React.FC = () => {
     window.location.reload();
   };
 
-  const handleCountrySelect = useCallback(async (id: string, name: string) => {
-    setSelectedCountry({ id, name });
-    setIsSidebarOpen(true);
+  const fetchIntelligence = useCallback(async (countryId: string, countryName: string, forceRefresh: boolean = false) => {
     setLoading(true);
-    addLog(`INTEL: Analyzing sector ${id} (${name})...`);
+    addLog(`INTEL: Analyzing sector ${countryId} (${countryName})...`);
     try {
-      const data = await getCountryBriefing(name, apiKey, isStandalone);
+      const data = await getCountryBriefing(countryName, apiKey, forceRefresh ? false : isStandalone);
       setBriefing(data);
-      addLog(`INTEL: ${name} SITREP synchronized.`);
+      addLog(`INTEL: ${countryName} SITREP synchronized.`);
     } catch (error) {
-      // If the request fails due to missing entity, reset key state as per guidelines
+      console.error('Failed to fetch intelligence:', error);
       if (error instanceof Error && error.message.includes("Requested entity was not found")) {
         addLog("ERROR: API Key rejected by backend. Resetting authorization.");
         setIsAuthorized(false);
       } else {
-        addLog(`ERROR: Connection to ${id} timed out.`);
+        addLog(`ERROR: Connection to ${countryId} timed out.`);
       }
       setBriefing(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiKey, isStandalone, addLog]);
+
+  const handleCountrySelect = useCallback((id: string, name: string) => {
+    setSelectedCountry({ id, name });
+    setIsSidebarOpen(true);
+    fetchIntelligence(id, name);
+  }, [fetchIntelligence]);
+
+  const handleRegenerateIntel = () => {
+    if (!selectedCountry) return;
+    fetchIntelligence(selectedCountry.id, selectedCountry.name, true);
+  };
 
   const toggleLayer = (layer: keyof LayerVisibility) => {
     addLog(`VIEW: Visual overlay [${layer.toUpperCase()}] updated.`);
@@ -445,6 +454,7 @@ const App: React.FC = () => {
             briefing={briefing}
             loading={loading}
             onClose={() => setIsSidebarOpen(false)}
+            onRefresh={handleRegenerateIntel}
             currentRisk={currentRisk}
           />
         </aside>
