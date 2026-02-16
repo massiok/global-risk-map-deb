@@ -11,6 +11,8 @@ import TechView from './components/docs/TechView';
 import PrivacyView from './components/docs/PrivacyView';
 import SupportView from './components/docs/SupportView';
 import TacticalChat from './components/TacticalChat';
+import TacticalOrb from './components/TacticalOrb';
+import { BASE_NATION_DATA } from './baseData';
 
 const App: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -34,7 +36,10 @@ const App: React.FC = () => {
 
   const [showDocModal, setShowDocModal] = useState<'about' | 'tech' | 'privacy' | 'support' | null>(null);
   const [layers, setLayers] = useState<LayerVisibility>({ risk: true, bases: true, hud: true });
-  const [showGlobalChat, setShowGlobalChat] = useState(true);
+  const [showGlobalChat, setShowGlobalChat] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceText, setVoiceText] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +87,55 @@ const App: React.FC = () => {
     const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
     setLogs(prev => [`[${time}] ${msg}`, ...prev].slice(0, 50));
   };
+
+  // Voice Recognition Integration
+  const toggleVoice = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      addLog("ERROR: Voice recognition not supported in this browser.");
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      addLog("VOICE: Neural link active. Listening...");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setVoiceText(transcript);
+      setShowGlobalChat(true);
+      addLog(`VOICE: Input received: "${transcript}"`);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  // Search Autocomplete Logic
+  useEffect(() => {
+    if (searchQuery.length > 1) {
+      const matches = Object.keys(BASE_NATION_DATA)
+        .filter(name => name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .slice(0, 5);
+      setSearchSuggestions(matches);
+    } else {
+      setSearchSuggestions([]);
+    }
+  }, [searchQuery]);
 
   const handleConnect = () => {
     if (!inputKey.trim()) return;
@@ -295,12 +349,14 @@ const App: React.FC = () => {
   // MAIN WORKSTATION UI
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#010409] text-slate-200 flex-col font-sans">
-      {/* MENU BAR */}
-      <nav ref={menuRef} className="h-8 bg-[#0d1117] border-b border-slate-800 flex items-center px-4 justify-between select-none z-[200]">
-        <div className="flex items-center gap-6 h-full">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setShowDocModal('about')}>
-            <Monitor size={14} className="text-blue-500" />
-            <span className="text-[10px] font-black tracking-widest text-white uppercase">HST WORKSTATION</span>
+      {/* MODERN GLASS MENU BAR */}
+      <nav ref={menuRef} className="h-10 bg-slate-900/40 backdrop-blur-md border-b border-white/5 flex items-center px-6 justify-between select-none z-[200]">
+        <div className="flex items-center gap-8 h-full">
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setShowDocModal('about')}>
+            <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20 group-hover:bg-blue-500/20 transition-all">
+              <Monitor size={16} className="text-blue-500" />
+            </div>
+            <span className="text-[11px] font-black tracking-[0.2em] text-white uppercase group-hover:text-blue-400 transition-colors">HST_CORE_v1.0</span>
           </div>
 
           <div className="flex items-center h-full">
@@ -361,6 +417,25 @@ const App: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-slate-900/50 border border-slate-800 rounded-lg py-1.5 pl-9 pr-3 text-[10px] mono font-bold text-slate-300 w-64 focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:text-slate-700"
                 />
+
+                {searchSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 w-64 mt-1 bg-slate-900 border border-slate-800 rounded-lg shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    {searchSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setSearchQuery(suggestion);
+                          setSearchSuggestions([]);
+                          handleCountrySelect(suggestion, suggestion); // BaseData uses names as keys mostly
+                        }}
+                        className="w-full text-left px-4 py-2 text-[10px] text-slate-400 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors font-bold tracking-tight uppercase"
+                      >
+                        {suggestion}
+                        <ArrowRight size={10} className="text-slate-700" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -448,18 +523,18 @@ const App: React.FC = () => {
                     <X size={12} />
                   </button>
                 </div>
-                <TacticalChat countryName="Global Sector" isStandalone={isStandalone} />
+                <TacticalChat countryName="Global Sector" isStandalone={isStandalone} voiceInput={voiceText} />
               </div>
             )}
 
-            {!selectedCountry && !showGlobalChat && (
-              <button
-                onClick={() => setShowGlobalChat(true)}
-                className="absolute bottom-36 left-6 p-4 bg-slate-950 border border-slate-800 rounded-2xl text-blue-500 hover:text-white hover:border-blue-500 transition-all shadow-2xl group z-50"
-              >
-                <TerminalIcon size={20} className="group-hover:scale-110 transition-transform" />
-              </button>
-            )}
+            <div className="absolute bottom-36 right-10 z-[100]">
+              <TacticalOrb
+                isListening={isListening}
+                onToggleListen={toggleVoice}
+                isActive={showGlobalChat}
+              />
+            </div>
+
 
             <div className="absolute bottom-0 left-0 w-full h-32 bg-[#010409]/95 border-t border-slate-800 z-10 flex flex-col backdrop-blur-xl">
               <div className="h-6 bg-slate-900/50 border-b border-slate-800 flex items-center px-4 justify-between">

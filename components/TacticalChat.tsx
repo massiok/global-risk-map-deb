@@ -5,9 +5,10 @@ import { ChatMessage } from '../types';
 interface TacticalChatProps {
     countryName: string;
     isStandalone: boolean;
+    voiceInput?: string;
 }
 
-const TacticalChat: React.FC<TacticalChatProps> = ({ countryName, isStandalone }) => {
+const TacticalChat: React.FC<TacticalChatProps> = ({ countryName, isStandalone, voiceInput }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
@@ -26,13 +27,24 @@ const TacticalChat: React.FC<TacticalChatProps> = ({ countryName, isStandalone }
         }
     }, [messages, isTyping]);
 
-    const handleSend = async () => {
-        if (!input.trim() || isTyping) return;
+    useEffect(() => {
+        if (voiceInput) {
+            setInput(voiceInput);
+            // Auto-send voice input if it's substantial
+            if (voiceInput.length > 5) {
+                setTimeout(() => handleSend(voiceInput), 500);
+            }
+        }
+    }, [voiceInput]);
+
+    const handleSend = async (overrideInput?: string) => {
+        const textToSend = overrideInput || input;
+        if (!textToSend.trim() || isTyping) return;
 
         const userMsg: ChatMessage = {
             id: Date.now().toString(),
             role: 'user',
-            content: input,
+            content: textToSend,
             timestamp: new Date().toLocaleTimeString()
         };
 
@@ -43,8 +55,8 @@ const TacticalChat: React.FC<TacticalChatProps> = ({ countryName, isStandalone }
         // AI simulation / Actual AI integration would go here
         setTimeout(() => {
             const responseContent = isStandalone
-                ? `[LOCAL_BUFFER_RESPONSE]: ANALYSIS OF "${input.toUpperCase()}" REQUIRES NEURAL HANDSHAKE. PLEASE AUTHORIZE VIA API UPLINK FOR DEEP SYNTHESIS.`
-                : `ANALYZING ${input}... GEOPOLITICAL VECTORS IN ${countryName} INDICATE CONTINUED VOLATILITY IN THIS DOMAIN.`;
+                ? `[LOCAL_BUFFER_RESPONSE]: ANALYSIS OF "${textToSend.toUpperCase()}" REQUIRES NEURAL HANDSHAKE. PLEASE AUTHORIZE VIA API UPLINK FOR DEEP SYNTHESIS.`
+                : `ANALYZING ${textToSend}... GEOPOLITICAL VECTORS IN ${countryName} INDICATE CONTINUED VOLATILITY IN THIS DOMAIN.`;
 
             const botMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
@@ -81,8 +93,8 @@ const TacticalChat: React.FC<TacticalChatProps> = ({ countryName, isStandalone }
                         </div>
                         <div className={`space-y-1 max-w-[80%]`}>
                             <div className={`p-3 rounded-2xl text-[10px] mono uppercase leading-relaxed ${msg.role === 'user'
-                                    ? 'bg-blue-600/10 border border-blue-500/20 text-blue-200 rounded-tr-none'
-                                    : 'bg-slate-900/50 border border-slate-800 text-slate-300 rounded-tl-none'
+                                ? 'bg-blue-600/10 border border-blue-500/20 text-blue-200 rounded-tr-none'
+                                : 'bg-slate-900/50 border border-slate-800 text-slate-300 rounded-tl-none'
                                 }`}>
                                 {msg.content}
                             </div>
