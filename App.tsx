@@ -10,6 +10,7 @@ import AboutView from './components/docs/AboutView';
 import TechView from './components/docs/TechView';
 import PrivacyView from './components/docs/PrivacyView';
 import SupportView from './components/docs/SupportView';
+import TacticalChat from './components/TacticalChat';
 
 const App: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -33,6 +34,7 @@ const App: React.FC = () => {
 
   const [showDocModal, setShowDocModal] = useState<'about' | 'tech' | 'privacy' | 'support' | null>(null);
   const [layers, setLayers] = useState<LayerVisibility>({ risk: true, bases: true, hud: true });
+  const [showGlobalChat, setShowGlobalChat] = useState(true);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +141,11 @@ const App: React.FC = () => {
   const handleRegenerateIntel = () => {
     if (!selectedCountry) return;
     fetchIntelligence(selectedCountry.id, selectedCountry.name, true);
+  };
+
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false);
+    setSelectedCountry(null);
   };
 
   const toggleLayer = (layer: keyof LayerVisibility) => {
@@ -430,6 +437,30 @@ const App: React.FC = () => {
               </div>
             )}
 
+            {!selectedCountry && showGlobalChat && (
+              <div className="absolute bottom-36 left-6 w-96 z-[60] animate-in slide-in-from-left-6 duration-700">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <TerminalIcon size={12} className="text-blue-500" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Global Command Console</span>
+                  </div>
+                  <button onClick={() => setShowGlobalChat(false)} className="p-1 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
+                    <X size={12} />
+                  </button>
+                </div>
+                <TacticalChat countryName="Global Sector" isStandalone={isStandalone} />
+              </div>
+            )}
+
+            {!selectedCountry && !showGlobalChat && (
+              <button
+                onClick={() => setShowGlobalChat(true)}
+                className="absolute bottom-36 left-6 p-4 bg-slate-950 border border-slate-800 rounded-2xl text-blue-500 hover:text-white hover:border-blue-500 transition-all shadow-2xl group z-50"
+              >
+                <TerminalIcon size={20} className="group-hover:scale-110 transition-transform" />
+              </button>
+            )}
+
             <div className="absolute bottom-0 left-0 w-full h-32 bg-[#010409]/95 border-t border-slate-800 z-10 flex flex-col backdrop-blur-xl">
               <div className="h-6 bg-slate-900/50 border-b border-slate-800 flex items-center px-4 justify-between">
                 <div className="flex items-center gap-2">
@@ -447,13 +478,13 @@ const App: React.FC = () => {
           </div>
         </main>
 
-        <aside className={`fixed inset-y-0 right-0 z-[110] w-full xs:w-[380px] md:w-[480px] transition-transform duration-500 ease-in-out ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} lg:relative lg:translate-x-0 lg:block lg:w-[420px] xl:w-[480px]`}>
+        <aside className={`fixed inset-y-0 right-0 z-[110] w-full xs:w-[380px] md:w-[480px] transition-transform duration-500 ease-in-out ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} lg:w-[480px]`}>
           <IntelligencePanel
             countryId={selectedCountry?.id || ""}
             countryName={selectedCountry?.name || "Sector Alpha"}
             briefing={briefing}
             loading={loading}
-            onClose={() => setIsSidebarOpen(false)}
+            onClose={handleCloseSidebar}
             onRefresh={handleRegenerateIntel}
             currentRisk={currentRisk}
           />

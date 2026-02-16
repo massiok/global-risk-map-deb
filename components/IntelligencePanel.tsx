@@ -60,8 +60,8 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
             <h2 className="text-3xl font-black text-white tracking-tight uppercase leading-none">{countryName}</h2>
             {briefing && (
               <div className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 ${briefing.source === 'LIVE' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                  briefing.source === 'CACHED' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                    'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                briefing.source === 'CACHED' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                  'bg-slate-500/20 text-slate-400 border border-slate-500/30'
                 }`}>
                 <div className={`w-1 h-1 rounded-full ${briefing.source === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-current'}`} />
                 {briefing.source} INTEL
@@ -83,8 +83,12 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
             )}
           </div>
         </div>
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-slate-950/50 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition-all">
-          <X size={16} />
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 p-4 -m-4 bg-slate-950/20 hover:bg-slate-950/80 rounded-full text-slate-400 hover:text-white transition-all z-50 flex items-center justify-center group"
+          title="Close Intelligence SITREP"
+        >
+          <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
         </button>
       </div>
 
