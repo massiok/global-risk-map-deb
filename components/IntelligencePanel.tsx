@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { AlertCircle, ShieldAlert, Globe, Loader2, X, Activity, Terminal, ListChecks, Coins, Target, ShieldCheck, Lock, UserCheck } from 'lucide-react';
+import { AlertCircle, ShieldAlert, Globe, Loader2, X, Activity, Terminal, ListChecks, Coins, Target, ShieldCheck, Lock, UserCheck, ShieldQuestion, Key } from 'lucide-react';
+import TacticalChat from './TacticalChat';
 import { IntelligenceResponse, RiskLevel } from '../types';
 import { RISK_COLORS, RISK_GRADIENTS } from '../constants';
 
@@ -13,10 +14,10 @@ interface IntelligencePanelProps {
   currentRisk: { score: number; level: RiskLevel };
 }
 
-const IntelligencePanel: React.FC<IntelligencePanelProps> = ({ 
-  countryId, 
-  countryName, 
-  briefing, 
+const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
+  countryId,
+  countryName,
+  briefing,
   loading,
   onClose,
   currentRisk
@@ -31,8 +32,8 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
               <span className="text-[8px] font-black uppercase tracking-[0.2em]">Top Secret</span>
             </div>
             <div className="flex items-center gap-1.5">
-               <div className={`w-1.5 h-1.5 rounded-full animate-pulse`} style={{ backgroundColor: RISK_COLORS[currentRisk.level] }} />
-               <span className={`text-[9px] font-black uppercase tracking-widest`} style={{ color: RISK_COLORS[currentRisk.level] }}>{currentRisk.level} THREAT</span>
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse`} style={{ backgroundColor: RISK_COLORS[currentRisk.level] }} />
+              <span className={`text-[9px] font-black uppercase tracking-widest`} style={{ color: RISK_COLORS[currentRisk.level] }}>{currentRisk.level} THREAT</span>
             </div>
           </div>
           <h2 className="text-3xl font-black text-white tracking-tight uppercase leading-none">{countryName}</h2>
@@ -50,8 +51,8 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
         {loading ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-6">
             <div className="relative">
-               <Loader2 className="animate-spin text-blue-600" size={40} />
-               <Activity className="absolute inset-0 m-auto text-blue-400 opacity-20" size={16} />
+              <Loader2 className="animate-spin text-blue-600" size={40} />
+              <Activity className="absolute inset-0 m-auto text-blue-400 opacity-20" size={16} />
             </div>
             <p className="mono text-[9px] uppercase tracking-[0.4em] font-black animate-pulse">Decrypting Signal</p>
           </div>
@@ -66,19 +67,31 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
               <p className="text-slate-100 leading-relaxed text-lg font-medium tracking-tight italic opacity-90">"{briefing.summary}"</p>
             </section>
 
-            <div className="grid grid-cols-1 gap-4">
-              {[
-                { l: 'Stability', d: briefing.politicalStability, i: ShieldAlert, c: 'text-red-400' },
-                { l: 'Conflict', d: briefing.conflictPotential, i: AlertCircle, c: 'text-orange-400' },
-                { l: 'Economic', d: briefing.economicRisk, i: Coins, c: 'text-emerald-400' }
-              ].map(v => (
-                <div key={v.l} className="p-4 bg-slate-900/40 rounded border border-slate-800 hover:bg-slate-900 transition-colors">
-                  <h4 className={`text-[8px] font-black uppercase mb-2 flex items-center gap-2 ${v.c}`}>
-                    <v.i size={10} /> {v.l} STATUS
-                  </h4>
-                  <p className="text-slate-400 text-[10px] leading-relaxed mono opacity-80">{v.d}</p>
+            <div className="grid grid-cols-1 gap-4 relative">
+              {!briefing.isAdvanced && (
+                <div className="absolute inset-x-0 -inset-y-2 z-20 flex flex-col items-center justify-center p-6 bg-[#0d1117]/60 backdrop-blur-md rounded-xl border border-blue-500/30 shadow-[0_0_40px_-10px_rgba(59,130,246,0.2)]">
+                  <div className="p-3 bg-blue-600/20 rounded-full border border-blue-500/40 mb-3 animate-pulse">
+                    <Key size={20} className="text-blue-400" />
+                  </div>
+                  <h4 className="text-[11px] font-black text-white uppercase tracking-[0.2em] mb-1">Neural Handshake Required</h4>
+                  <p className="text-[9px] text-slate-400 mono uppercase tracking-tight text-center max-w-[200px]">Advanced geopolitical synthesis is encrypted. Please authorize via API uplink to decrypt full SITREP.</p>
                 </div>
-              ))}
+              )}
+
+              <div className={`${!briefing.isAdvanced ? 'blur-[6px] select-none opacity-40 pointer-events-none' : ''} space-y-4`}>
+                {[
+                  { l: 'Stability', d: briefing.politicalStability, i: ShieldAlert, c: 'text-red-400' },
+                  { l: 'Conflict', d: briefing.conflictPotential, i: AlertCircle, c: 'text-orange-400' },
+                  { l: 'Economic', d: briefing.economicRisk, i: Coins, c: 'text-emerald-400' }
+                ].map(v => (
+                  <div key={v.l} className="p-4 bg-slate-900/40 rounded border border-slate-800 hover:bg-slate-900 transition-colors">
+                    <h4 className={`text-[8px] font-black uppercase mb-2 flex items-center gap-2 ${v.c}`}>
+                      <v.i size={10} /> {v.l} STATUS
+                    </h4>
+                    <p className="text-slate-400 text-[10px] leading-relaxed mono opacity-80">{v.d}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <section>
@@ -92,16 +105,20 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                 ))}
               </div>
             </section>
+
+            <section className="pt-4 border-t border-slate-800/50">
+              <TacticalChat countryName={countryName} isStandalone={!briefing.isAdvanced} />
+            </section>
           </>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-700 text-center gap-6">
-             <div className="p-4 rounded-full border border-slate-800/50">
-               <Globe size={32} className="opacity-20" />
-             </div>
-             <div className="space-y-2">
-               <p className="text-[9px] mono uppercase font-bold text-slate-500">Awaiting Target Selection</p>
-               <p className="text-[8px] mono text-slate-700">Sector data will be retrieved via HST primary uplink.</p>
-             </div>
+            <div className="p-4 rounded-full border border-slate-800/50">
+              <Globe size={32} className="opacity-20" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-[9px] mono uppercase font-bold text-slate-500">Awaiting Target Selection</p>
+              <p className="text-[8px] mono text-slate-700">Sector data will be retrieved via HST primary uplink.</p>
+            </div>
           </div>
         )}
       </div>

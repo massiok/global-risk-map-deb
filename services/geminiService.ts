@@ -1,18 +1,19 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { IntelligenceResponse } from "../types";
+import { BASE_NATION_DATA, DEFAULT_BASE_DATA } from "../baseData";
 
 const getMockBriefing = (countryName: string): IntelligenceResponse => {
+  // Try to find if we have ISO code or name match (simplified)
+  // For simplicity, let's assume we pass the ISO code or name
+  const data = BASE_NATION_DATA[countryName] || Object.values(BASE_NATION_DATA).find(d => d.summary.includes(countryName)) || DEFAULT_BASE_DATA;
+
   return {
-    summary: `UNLINKED SITREP: Analyzing sector ${countryName} via local heuristics (Standalone Mode).`,
-    politicalStability: "LOCAL_BUFFER: Internal data indicates stable governing hierarchy with moderate bureaucracy.",
-    conflictPotential: "LOCAL_BUFFER: Low probability of kinetic escalation in the immediate 72-hour window.",
-    economicRisk: "LOCAL_BUFFER: Sovereign credit metrics remain within baseline parameters for this sector.",
-    keyThreats: [
-      "Cyber-espionage escalation in banking sector",
-      "Localized infrastructure degradation",
-      "Supply chain bottlenecking in transport nodes"
-    ]
+    summary: data.summary,
+    politicalStability: data.stability,
+    conflictPotential: "NEURAL_HANDSHAKE_REQUIRED: Advanced kinetic assessment encrypted.",
+    economicRisk: data.economic,
+    keyThreats: data.threats,
+    isAdvanced: false
   };
 };
 
@@ -26,7 +27,7 @@ export const getCountryBriefing = async (countryName: string, apiKey?: string, i
   // Always use gemini-1.5-pro for complex geopolitical and analytical tasks.
   // Instantiate GoogleGenAI right before the call to use the most up-to-date API key.
   const ai = new GoogleGenAI({ apiKey });
-  
+
   const prompt = `Provide a senior-level geopolitical intelligence SITREP for ${countryName}. 
   Examine internal and external risk vectors, including governance stability, civil unrest, and territorial disputes.
   Structure the response as a professional intelligence packet.`;
@@ -43,10 +44,10 @@ export const getCountryBriefing = async (countryName: string, apiKey?: string, i
           politicalStability: { type: Type.STRING, description: "Detailed analysis of governing regime and stability." },
           conflictPotential: { type: Type.STRING, description: "Assessment of internal unrest or external military conflict." },
           economicRisk: { type: Type.STRING, description: "Economic indicators affecting national security." },
-          keyThreats: { 
-            type: Type.ARRAY, 
+          keyThreats: {
+            type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "A list of 3-5 specific identified threat vectors." 
+            description: "A list of 3-5 specific identified threat vectors."
           },
         },
         required: ["summary", "politicalStability", "conflictPotential", "economicRisk", "keyThreats"],
@@ -58,7 +59,8 @@ export const getCountryBriefing = async (countryName: string, apiKey?: string, i
 
   try {
     const text = response.text || "{}";
-    return JSON.parse(text.trim()) as IntelligenceResponse;
+    const data = JSON.parse(text.trim()) as IntelligenceResponse;
+    return { ...data, isAdvanced: true };
   } catch (error) {
     console.error("Geopolitical parsing failed:", error);
     throw new Error("SEC_PARSE_ERROR: Data packet corrupted.");
